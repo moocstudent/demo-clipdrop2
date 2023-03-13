@@ -17,13 +17,16 @@ import java.io.IOException
 @RestController
 class ClipController {
 
-    companion object{
-       val API_KEY =  "95358a121e9458ae796e169fe5d3de0590cf7bb06f34112700815f4467318f1a8345d4589e0be0023e8192136926747e"
+    companion object {
+        val API_KEY = "95358a121e9458ae796e169fe5d3de0590cf7bb06f34112700815f4467318f1a8345d4589e0be0023e8192136926747e"
     }
 
+    /**
+     * mask遮罩
+     */
     @GetMapping("/mask")
     fun inpainting(): Response {
-        println("inpainting")
+        print("inpainting")
         val client = OkHttpClient()
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
@@ -57,64 +60,228 @@ class ClipController {
         }
     }
 
-        @GetMapping("/removeBg")
-        fun removeBg(): Response {
-            val client = OkHttpClient()
-            val requestBody =
-                MultipartBody.Builder()
-                    .setType(MultipartBody.FORM)
-                    .addFormDataPart(
-                        "image_file",
-                        "street.jpg",
-                        File("docs/images/street.jpg").asRequestBody("image/jpeg".toMediaType())
-                    )
-                    .build()
+    /**
+     * 移除背景
+     */
+    @GetMapping("/removeBg")
+    fun removeBg(): Response {
+        print("removeBg")
+        val client = OkHttpClient()
+        val requestBody =
+            MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart(
+                    "image_file",
+                    "street.jpg",
+                    File("docs/images/street.jpg").asRequestBody("image/jpeg".toMediaType())
+                )
+                .build()
 
-            val request =
-                Request.Builder()
-                    .header("x-api-key", API_KEY)
-                    .url("https://clipdrop-api.co/remove-background/v1")
-                    .post(requestBody)
-                    .build()
+        val request =
+            Request.Builder()
+                .header("x-api-key", API_KEY)
+                .url("https://clipdrop-api.co/remove-background/v1")
+                .post(requestBody)
+                .build()
 
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) throw IOException("Unexpected code $response")
-                val file = File("docs/results/removebg.png")
-                FileUtils.writeByteArrayToFile(file, response.body?.bytes())
-                println("success")
-                return response // here is a byte array of the returned image
-            }
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw IOException("Unexpected code $response")
+            val file = File("docs/results/removeBg.png")
+            FileUtils.writeByteArrayToFile(file, response.body?.bytes())
+            println("success")
+            return response // here is a byte array of the returned image
         }
+    }
 
-    @GetMapping("superResolution")
-      fun superResolution():Response{
-          // this example uses the OkHttp library
-          val client = OkHttpClient()
-          val requestBody =
-              MultipartBody.Builder()
-                  .setType(MultipartBody.FORM)
-                  .addFormDataPart(
-                      "image_file",
-                      "car.png",
-                      File("docs/images/car.png").asRequestBody("image/jpeg".toMediaType())
-                  )
-                  .addFormDataPart("upscale", 2.toString())
-                  .build()
+    /**
+     * 锐化 清晰化
+     */
+    @GetMapping("/superResolution")
+    fun superResolution(): Response {
+        print("superResolution")
+        // this example uses the OkHttp library
+        val client = OkHttpClient()
+        val requestBody =
+            MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart(
+                    "image_file",
+                    "car.png",
+                    File("docs/images/car.png").asRequestBody("image/jpeg".toMediaType())
+                )
+                .addFormDataPart("upscale", 2.toString())
+                .build()
 
-          val request =
-              Request.Builder()
-                  .header("x-api-key", API_KEY)
-                  .url("https://clipdrop-api.co/super-resolution/v1")
-                  .post(requestBody)
-                  .build()
+        val request =
+            Request.Builder()
+                .header("x-api-key", API_KEY)
+                .url("https://clipdrop-api.co/super-resolution/v1")
+                .post(requestBody)
+                .build()
 
-          client.newCall(request).execute().use { response ->
-              if (!response.isSuccessful) throw IOException("Unexpected code $response")
-              val file = File("docs/results/superResolution.png")
-              FileUtils.writeByteArrayToFile(file, response.body?.bytes())
-              println("success")
-              return response
-          }
-      }
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw IOException("Unexpected code $response")
+            val file = File("docs/results/superResolution.png")
+            FileUtils.writeByteArrayToFile(file, response.body?.bytes())
+            println("success")
+            return response
+        }
+    }
+
+    /**
+     * 移除圖片中文本
+     */
+    @GetMapping("/removeText")
+    fun removeText(): Response {
+        print("removeText")
+        // this example uses the OkHttp library
+        val client = OkHttpClient()
+        val requestBody =
+            MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart(
+                    "image_file",
+                    "image.jpg",
+                    File("docs/images/image.jpg").asRequestBody("image/jpeg".toMediaType())
+                )
+                .build()
+
+        val request =
+            Request.Builder()
+                .header("x-api-key", API_KEY)
+                .url("https://clipdrop-api.co/remove-text/v1")
+                .post(requestBody)
+                .build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw IOException("Unexpected code $response")
+            val file = File("docs/results/removeText.png")
+            FileUtils.writeByteArrayToFile(file, response.body?.bytes())
+            println("success")
+            return response
+        }
+    }
+
+    @GetMapping("/textToImage")
+    fun textToImage():Response {
+        print("textToImage")
+        // this example uses the OkHttp library
+        val client = OkHttpClient()
+
+        val requestBody =
+            MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("prompt", "photograph of a cat surfing")
+                .build()
+
+        val request =
+            Request.Builder()
+                .header("x-api-key", API_KEY)
+                .url("https://clipdrop-api.co/text-to-image/v1")
+                .post(requestBody)
+                .build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw IOException("Unexpected code $response")
+            val file = File("docs/results/textToImage.png")
+            FileUtils.writeByteArrayToFile(file, response.body?.bytes())
+            println("success")
+            return response
+        }
+    }
+
+    @GetMapping("/replaceBg")
+    fun replaceBg():Response{
+        // this example uses the OkHttp library
+        val client = OkHttpClient()
+
+        val requestBody =
+            MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart(
+                    "image_file",
+                    "car.jpg",
+                    File("docs/images/car.jpg").asRequestBody("image/jpeg".toMediaType())
+                )
+                .addFormDataPart("prompt", "a cozy marble kitchen with wine glasses")
+                .build()
+
+        val request =
+            Request.Builder()
+                .header("x-api-key", API_KEY)
+                .url("https://clipdrop-api.co/replace-background/v1")
+                .post(requestBody)
+                .build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw IOException("Unexpected code $response")
+            val file = File("docs/results/replaceBg.png")
+            FileUtils.writeByteArrayToFile(file, response.body?.bytes())
+            println("success")
+            return response
+        }
+    }
+
+    @GetMapping("/pde")
+    fun pde():Response {
+        // this example uses the OkHttp library
+        val client = OkHttpClient()
+
+        val requestBody =
+            MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart(
+                    "image_file",
+                    "portrait.jpg",
+                    File("docs/images/portrait.jpg").asRequestBody("image/jpeg".toMediaType())
+                )
+                .build()
+
+        val request =
+            Request.Builder()
+                .header("x-api-key", "YOUR_API_KEY")
+                .url("https://clipdrop-api.co/portrait-depth-estimation/v1")
+                .post(requestBody)
+                .build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw IOException("Unexpected code $response")
+            val file = File("docs/results/pde.png")
+            FileUtils.writeByteArrayToFile(file, response.body?.bytes())
+            println("success")
+            return response
+        }
+    }
+
+    @GetMapping("/psn")
+    fun psn():Response {
+        // this example uses the OkHttp library
+        val client = OkHttpClient()
+
+        val requestBody =
+            MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart(
+                    "image_file",
+                    "portrait.jpg",
+                    File("docs/images/portrait.jpg").asRequestBody("image/jpeg".toMediaType())
+                )
+                .build()
+
+        val request =
+            Request.Builder()
+                .header("x-api-key", API_KEY)
+                .url("https://clipdrop-api.co/portrait-surface-normals/v1")
+                .post(requestBody)
+                .build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) throw IOException("Unexpected code $response")
+            val file = File("docs/results/psn.png")
+            FileUtils.writeByteArrayToFile(file, response.body?.bytes())
+            println("success")
+            return response
+        }
+    }
 }
 
